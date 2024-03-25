@@ -111,6 +111,7 @@ class TelephonyServer:
 
     async def recordings(self, request: Request, conversation_id: str):
         recording_url = (await request.json())["recording_url"]
+        self.logger.info(f"RECORDING_URL: {recording_url}")
         if self.events_manager is not None and recording_url is not None:
             self.events_manager.publish_event(
                 RecordingEvent(

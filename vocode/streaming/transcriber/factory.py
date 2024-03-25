@@ -21,10 +21,14 @@ class TranscriberFactory:
     def create_transcriber(
         self,
         transcriber_config: TranscriberConfig,
+        audio_id: Optional[str] = None,
         logger: Optional[logging.Logger] = None,
     ):
         if isinstance(transcriber_config, DeepgramTranscriberConfig):
-            return DeepgramTranscriber(transcriber_config, logger=logger)
+            return DeepgramTranscriber(transcriber_config, 
+                                       audio_id=audio_id, 
+                                       logger=logger)
+        # TODO: add to rest as needed
         elif isinstance(transcriber_config, GoogleTranscriberConfig):
             return GoogleTranscriber(transcriber_config, logger=logger)
         elif isinstance(transcriber_config, AssemblyAITranscriberConfig):

@@ -9,8 +9,9 @@ import logging
 from pydantic.v1 import BaseModel
 
 from vocode import getenv
+from vocode.streaming.models.message import BaseMessage, JSONStrMessage
 from vocode.streaming.action.factory import ActionFactory
-from vocode.streaming.agent.base_agent import RespondAgent
+from vocode.streaming.agent.base_agent import RespondAgent, timed_response
 from vocode.streaming.models.actions import FunctionCall, FunctionFragment
 from vocode.streaming.models.agent import ChatGPTAgentConfig
 from vocode.streaming.agent.utils import (
@@ -53,8 +54,14 @@ class ChatGPTAgent(RespondAgent[ChatGPTAgentConfig]):
             if agent_config.expected_first_prompt
             else None
         )
-        self.is_first_response = True
 
+        if self.logger is None:
+            logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            logger = logging.getLogger(__name__)
+            logger.setLevel(logging.DEBUG)
+
+        self.is_first_response = True 
+        self.json_str = "" # Use this to collect the json dict
         if self.agent_config.vector_db_config:
             self.vector_db = vector_db_factory.create_vector_db(
                 self.agent_config.vector_db_config
@@ -109,6 +116,7 @@ class ChatGPTAgent(RespondAgent[ChatGPTAgentConfig]):
     def attach_transcript(self, transcript: Transcript):
         self.transcript = transcript
 
+    @timed_response()
     async def respond(
         self,
         human_input,
@@ -117,9 +125,9 @@ class ChatGPTAgent(RespondAgent[ChatGPTAgentConfig]):
     ) -> Tuple[str, bool]:
         assert self.transcript is not None
         if is_interrupt and self.agent_config.cut_off_response:
+            self.response_timer.reset()
             cut_off_response = self.get_cut_off_response()
             return cut_off_response, False
-        self.logger.debug("LLM responding to human input")
         if self.is_first_response and self.first_response:
             self.logger.debug("First response is cached")
             self.is_first_response = False
@@ -128,19 +136,28 @@ class ChatGPTAgent(RespondAgent[ChatGPTAgentConfig]):
             chat_parameters = self.get_chat_parameters()
             chat_completion = await openai.ChatCompletion.acreate(**chat_parameters)
             text = chat_completion.choices[0].message.content
-        self.logger.debug(f"LLM response: {text}")
         return text, False
 
+    @timed_response()
     async def generate_response(
         self,
         human_input: str,
         conversation_id: str,
         is_interrupt: bool = False,
-    ) -> AsyncGenerator[Tuple[Union[str, FunctionCall], bool], None]:
+    ) -> AsyncGenerator[Tuple[Union[str, FunctionCall, JSONStrMessage], bool], None]:
+        self.logger.debug(f"inside ChatGPTAgent generate_response, is_first_response: {self.is_first_response}")
+        
+        if self.is_first_response:
+            initial_response = self.get_agent_config().initial_message
+            self.logger.debug(f"generate_response: Sending initial message {initial_response}")
+            self.is_first_response = False
+            yield initial_response.text, self.get_agent_config().initial_message_interruptible
+            return
+        
         if is_interrupt and self.agent_config.cut_off_response:
+            self.response_timer.reset()
             cut_off_response = self.get_cut_off_response()
             yield cut_off_response, False
-            return
         assert self.transcript is not None
 
         chat_parameters = {}
@@ -172,7 +189,13 @@ class ChatGPTAgent(RespondAgent[ChatGPTAgentConfig]):
         else:
             chat_parameters = self.get_chat_parameters()
         chat_parameters["stream"] = True
+        # self.logger.info(f"Current Chat Parameters: {chat_parameters}")
+        # @Roy: this is where chatGPT is being called. Note that this is using a 
+        # 6-8 month obsolete openAI API. 
+        # More importantly for now, notice the collate_response_async which seems 
+        # to be grouping the stream into a sequences of sentences.
         stream = await openai.ChatCompletion.acreate(**chat_parameters)
+        # @Roy: this was the orig code from vocode
         async for message in collate_response_async(
             openai_get_tokens(stream), get_functions=True
         ):

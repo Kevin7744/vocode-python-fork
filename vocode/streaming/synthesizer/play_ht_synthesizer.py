@@ -63,6 +63,8 @@ class PlayHtSynthesizer(BaseSynthesizer[PlayHtSynthesizerConfig]):
             body["seed"] = self.synthesizer_config.seed
         if self.synthesizer_config.temperature:
             body["temperature"] = self.synthesizer_config.temperature
+        if self.synthesizer_config.voice_engine_id:
+            body["voice_engine"] = self.synthesizer_config.voice_engine_id
 
         create_speech_span = tracer.start_span(
             f"synthesizer.{SynthesizerType.PLAY_HT.value.split('_', 1)[-1]}.create_total",

@@ -44,6 +44,8 @@ miniaudio = "^1.59"
 boto3 = "^1.28.28"
 pydantic = "^2.0"
 langchain-community = "^0.0.16"
+pyngrok = "^7.1.6"
+watchtower = "^3.1.0"
 
 
 

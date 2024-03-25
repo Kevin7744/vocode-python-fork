@@ -116,11 +116,21 @@ class OutboundCall:
             from_phone=self.from_phone,
             mobile_only=self.mobile_only,
         )
+
+        # This has been added because twilio_call.py triggers a recording as 
+        # well with recordings.create
+        # https://www.twilio.com/docs/voice/api/recording#recordingstatuscallback
+        # If we set to True, we will get two recordings on the dashboard
+        if isinstance(self.telephony_client, TwilioClient):
+            record = False
+        else:
+            record = self.telephony_client.get_telephony_config().record
+
         self.telephony_id = await self.telephony_client.create_call(
             conversation_id=self.conversation_id,
             to_phone=self.to_phone,
             from_phone=self.from_phone,
-            record=self.telephony_client.get_telephony_config().record,
+            record=record,
             digits=self.digits,
         )
         if isinstance(self.telephony_client, TwilioClient):

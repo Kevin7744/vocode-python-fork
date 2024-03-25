@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 import asyncio
 from enum import Enum
 import json
@@ -36,7 +37,7 @@ from vocode.streaming.models.agent import (
     ChatGPTAgentConfig,
     LLMAgentConfig,
 )
-from vocode.streaming.models.message import BaseMessage
+from vocode.streaming.models.message import BaseMessage, JSONStrMessage
 from vocode.streaming.models.model import BaseModel, TypedModel
 from vocode.streaming.transcriber.base_transcriber import Transcription
 from vocode.streaming.utils import remove_non_letters_digits
@@ -48,12 +49,22 @@ from vocode.streaming.utils.worker import (
     InterruptibleEventFactory,
     InterruptibleWorker,
 )
+from vocode.marrlabs.utils.logging_utils import LoggerConvIndex
 
 if TYPE_CHECKING:
     from vocode.streaming.utils.state_manager import ConversationStateManager
 
 tracer = trace.get_tracer(__name__)
 AGENT_TRACE_NAME = "agent"
+
+
+
+logging.setLoggerClass(LoggerConvIndex)
+lm_logger = logging.getLogger(__name__ + '_profiling')
+logging.setLoggerClass(logging.Logger)
+
+
+
 
 
 class AgentInputType(str, Enum):
@@ -87,7 +98,6 @@ class AgentResponseType(str, Enum):
     MESSAGE = "agent_response_message"
     STOP = "agent_response_stop"
     FILLER_AUDIO = "agent_response_filler_audio"
-
 
 class AgentResponse(TypedModel, type=AgentResponseType.BASE.value):
     pass
@@ -140,6 +150,11 @@ class BaseAgent(AbstractAgent[AgentConfigType], InterruptibleWorker):
         interruptible_event_factory: InterruptibleEventFactory = InterruptibleEventFactory(),
         logger: Optional[logging.Logger] = None,
     ):
+        self.emit_filler_if_long_response = agent_config.emit_filler_if_long_response
+        self.emit_filler_if_long_response_threshold_sec = (
+            agent_config.emit_filler_if_long_response_threshold_sec
+        )
+        self.response_timer = ResponseTimer()
         self.input_queue: asyncio.Queue[
             InterruptibleEvent[AgentInput]
         ] = asyncio.Queue()
@@ -198,10 +213,93 @@ class BaseAgent(AbstractAgent[AgentConfigType], InterruptibleWorker):
         return asyncio.create_task(self.goodbye_model.is_goodbye(message))
 
 
+class ResponseTimer:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.start_time = None
+        self.end_time = None
+        self.finished = False
+
+    def start(self):
+        self.reset()
+        self.start_time = time.perf_counter()
+
+    def stop(self, finished=False):
+        self.end_time = time.perf_counter()
+        self.finished = finished
+
+    @property
+    def elapsed(self):
+        if self.start_time is not None:
+            return (self.end_time or time.perf_counter()) - self.start_time
+        return 0
+
+
+def timed_response():
+    def decorator(func):
+        async def time_monitor(self):
+            while not self.response_timer.finished:
+                await asyncio.sleep(0.050)  # Check every 50ms
+                if (
+                    self.response_timer.elapsed
+                    > self.emit_filler_if_long_response_threshold_sec
+                ):
+                    self.produce_interruptible_agent_response_event_nonblocking(
+                        AgentResponseFillerAudio(), is_interruptible=True
+                    )
+                    self.response_timer.stop(finished=True)
+                    break
+
+        if asyncio.iscoroutinefunction(func):
+            # Wrapper for regular coroutine function
+            async def coroutine_wrapper(*args, **kwargs):
+                self = args[0]
+                self.response_timer.reset()
+                self.response_timer.start()
+                monitor_task = asyncio.create_task(time_monitor(self))
+                result = await func(*args, **kwargs)
+                await monitor_task  # Ensure the monitor task finishes
+                return result
+
+            return coroutine_wrapper
+
+        else:
+            # Wrapper for async generator function
+            async def generator_wrapper(*args, **kwargs):
+                self = args[0]
+                self.response_timer.reset()
+                self.response_timer.start()
+                monitor_task = asyncio.create_task(time_monitor(self))
+
+                gen = func(*args, **kwargs)
+                try:
+                    first_yielded_item = await gen.__anext__()  # Get the first item
+                    self.response_timer.stop(
+                        finished=False
+                    )  # Stop the timer after first yield
+                    yield first_yielded_item  # Yield the first item
+                    async for item in gen:  # Continue with the rest of the generator
+                        yield item
+                except StopAsyncIteration:
+                    pass
+
+                self.response_timer.stop(
+                    finished=True
+                )  # Final stop call if not already stopped
+                await monitor_task  # Ensure the monitor task finishes
+
+            return generator_wrapper
+
+    return decorator
+
+
 class RespondAgent(BaseAgent[AgentConfigType]):
     async def handle_generate_response(
         self, transcription: Transcription, agent_input: AgentInput
     ) -> bool:
+        self.logger.debug("enter handle_generate_response in RespondAgent")
         conversation_id = agent_input.conversation_id
         tracer_name_start = await self.get_tracer_name_start()
         agent_span = tracer.start_span(
@@ -210,6 +308,8 @@ class RespondAgent(BaseAgent[AgentConfigType]):
         agent_span_first = tracer.start_span(
             f"{tracer_name_start}.generate_first"  # type: ignore
         )
+        LoggerConvIndex.next_turn()
+        lm_logger.info(f'gpt_start_time|{LoggerConvIndex.conversation_relative(time.time())}|{LoggerConvIndex.conversation_idx()}') 
         responses = self.generate_response(
             transcription.message,
             is_interrupt=transcription.is_interrupt,
@@ -217,21 +317,30 @@ class RespondAgent(BaseAgent[AgentConfigType]):
         )
         is_first_response = True
         function_call = None
+        first=True
         async for response, is_interruptible in responses:
+            if first:
+                lm_logger.info(f'gpt_first_token_time|{LoggerConvIndex.conversation_relative(time.time())}|{LoggerConvIndex.conversation_idx()}')     
+                first=False
             if isinstance(response, FunctionCall):
                 function_call = response
                 continue
-            if is_first_response:
-                agent_span_first.end()
-                is_first_response = False
-            self.produce_interruptible_agent_response_event_nonblocking(
-                AgentResponseMessage(message=BaseMessage(text=response)),
-                is_interruptible=self.agent_config.allow_agent_to_be_cut_off
-                and is_interruptible,
-                agent_response_tracker=agent_input.agent_response_tracker,
-            )
+            else:
+                # Existing handling for text message responses
+                if is_first_response:
+                    agent_span_first.end()
+                    is_first_response = False
+                # Trigger AgentResponseWorker
+                self.produce_interruptible_agent_response_event_nonblocking(
+                    AgentResponseMessage(message=BaseMessage(text=response, intent=None)),
+                    is_interruptible=is_interruptible,
+                    agent_response_tracker=agent_input.agent_response_tracker,
+                )
+        # Here we 
         # TODO: implement should_stop for generate_responses
         agent_span.end()
+        lm_logger.info(f'gpt_last_token_time|{LoggerConvIndex.conversation_relative(time.time())}|{LoggerConvIndex.conversation_idx()}')
+
         if function_call and self.agent_config.actions is not None:
             await self.call_function(function_call, agent_input)
         return False
@@ -262,6 +371,7 @@ class RespondAgent(BaseAgent[AgentConfigType]):
         return False
 
     async def process(self, item: InterruptibleEvent[AgentInput]):
+        self.logger.debug("enter process in base_agent RespondAgent")
         if self.is_muted:
             self.logger.debug("Agent is muted, skipping processing")
             return
@@ -299,10 +409,14 @@ class RespondAgent(BaseAgent[AgentConfigType]):
                 goodbye_detected_task = self.create_goodbye_detection_task(
                     transcription.message
                 )
-            if self.agent_config.send_filler_audio:
+            if (
+                self.agent_config.send_filler_audio
+                and not self.emit_filler_if_long_response
+            ):
                 self.produce_interruptible_agent_response_event_nonblocking(
-                    AgentResponseFillerAudio()
+                    AgentResponseFillerAudio(), is_interruptible=False
                 )
+            
             self.logger.debug("Responding to transcription")
             should_stop = False
             if self.agent_config.generate_responses:
@@ -320,6 +434,7 @@ class RespondAgent(BaseAgent[AgentConfigType]):
                     AgentResponseStop()
                 )
                 return
+            # 
             if goodbye_detected_task:
                 try:
                     goodbye_detected = await asyncio.wait_for(

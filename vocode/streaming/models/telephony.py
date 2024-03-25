@@ -26,6 +26,7 @@ class TwilioConfig(BaseModel):
     account_sid: str
     auth_token: str
     record: bool = False
+    recordings_dir: str = None
     extra_params: Optional[Dict[str, Any]] = {}
 
 

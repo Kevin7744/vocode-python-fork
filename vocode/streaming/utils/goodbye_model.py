@@ -18,6 +18,10 @@ GOODBYE_PHRASES = [
     "talk to you soon",
     "have a good day",
     "have a good night",
+    "all right, bye bye",
+    "have a good one",
+    "adios",
+    "ciao",
 ]
 
 

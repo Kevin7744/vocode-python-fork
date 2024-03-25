@@ -30,6 +30,8 @@ class EventsManager:
                 await self.handle_event(event)
             except asyncio.QueueEmpty:
                 await asyncio.sleep(1)
+            except TypeError:
+                await asyncio.sleep(1)
 
     async def handle_event(self, event: Event):
         pass  # Default implementation, can be overridden

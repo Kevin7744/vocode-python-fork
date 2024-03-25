@@ -1,0 +1,19 @@
+{
+    "business_name": "<business_name>",
+    "campaign_name": "<campaign_name>",
+    "agent_gpt_config": {
+        "gpt_model_name": "<model_name>",
+        "initial_message": "<agent_initial_message>",
+        "prompt_preamble": "<agent_prompt_preamble>",
+        "generate_responses": true,
+        "end_conversation_on_goodbye": true,
+        "max_tokens": 1000
+    },
+    "human_gpt_config": {
+        "gpt_model_name": "<model_name>",
+        "prompt_preamble": "<human_prompt_preamble>",
+        "generate_responses": true,
+        "end_conversation_on_goodbye": true,
+        "max_tokens": 1000
+    }
+}

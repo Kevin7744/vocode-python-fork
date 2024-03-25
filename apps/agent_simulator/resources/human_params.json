@@ -1,0 +1,60 @@
+{
+    "available_item_jan_29": [
+        {
+            "Style": "Maintain politeness and human-like conversation, simple, curt, and without unnecessary embellishments.",
+            "Name": "Tommy"
+        },
+        {
+            "Style": "Maintain politeness and human-like conversation, though you are a very talkative person.",
+            "Name": "Sammy"
+        },
+        {
+            "Style": "You are a very busy person, so answer accordingly.",
+            "Name": "Alice"
+        },
+        {
+            "Style": "Behave like you are very confused and incompetent.",
+            "Name": "George"
+        }
+    ],
+    "available_item_feb_1": [
+        {
+            "Style": "Maintain politeness and human-like conversation, simple, curt, and without unnecessary embellishments.",
+            "Name": "Tommy"
+        },
+        {
+            "Style": "Maintain politeness and human-like conversation, though you are a very talkative person.",
+            "Name": "Sammy"
+        },
+        {
+            "Style": "You are a very busy person, so answer accordingly.",
+            "Name": "Alice"
+        },
+        {
+            "Style": "Behave like you are very confused and incompetent.",
+            "Name": "George"
+        }
+    ],
+    "appointment_booking_feb_1": [
+        {
+            "Style": "Maintain politeness and human-like conversation, simple, curt, and without unnecessary embellishments.",
+            "Name": "Sammy",
+            "ClientAvailability": "Only available on Thursday 2024-02-01, "
+        },
+        {
+            "Style": "Maintain politeness and human-like conversation, though you are a very talkative person.",
+            "Name": "Sammy",
+            "ClientAvailability": "Any time on Monday or Tuesday"
+        },
+        {
+            "Style": "You are a very busy person, so answer accordingly.",
+            "Name": "Sammy",
+            "ClientAvailability": "Monday after 12pm only"
+        },
+        {
+            "Style": "Behave like you are very confused and incompetent.",
+            "Name": "Sammy",
+            "ClientAvailability": "Available Fridays only after 6pm"
+        }
+    ]
+}

@@ -24,7 +24,8 @@ from vocode.streaming.models.transcript import (
     Transcript,
 )
 
-SENTENCE_ENDINGS = [".", "!", "?", "\n"]
+# Ghinwa: Added more endings to try to reduce the chunk sizes.
+SENTENCE_ENDINGS = [",", ":", ";", ".", "!", "?", "\n"]
 
 
 async def collate_response_async(
@@ -61,9 +62,11 @@ async def collate_response_async(
                         yield to_return
                     buffer = ""
             prev_ends_with_money = ends_with_money
+                
         elif isinstance(token, FunctionFragment):
             function_name_buffer += token.name
             function_args_buffer += token.arguments
+
     to_return = buffer.strip()
     if to_return:
         yield to_return

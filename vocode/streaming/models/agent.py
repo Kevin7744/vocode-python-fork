@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 from enum import Enum
 from langchain.prompts import PromptTemplate
 
@@ -63,8 +63,13 @@ class AzureOpenAIConfig(BaseModel):
 
 
 class AgentConfig(TypedModel, type=AgentType.BASE.value):
+    emit_filler_if_long_response: bool = True
+    emit_filler_if_long_response_threshold_sec: float = 0.1
     initial_message: Optional[BaseMessage] = None
+    initial_message_interruptible: Optional[bool] = True
+    timeout_initial_message: Optional[float] = 3
     generate_responses: bool = True
+    check_in_idle_time_seconds: Optional[float] = None
     allowed_idle_time_seconds: Optional[float] = None
     allow_agent_to_be_cut_off: bool = True
     end_conversation_on_goodbye: bool = False
@@ -75,8 +80,17 @@ class AgentConfig(TypedModel, type=AgentType.BASE.value):
 
 
 class CutOffResponse(BaseModel):
-    messages: List[BaseMessage] = [BaseMessage(text="Sorry?")]
+    messages: List[BaseMessage] = [
+        BaseMessage(text="Sorry?"),
+        BaseMessage(text="Apologies, you were saying?"),
+    ]
 
+class SimpleCutOffResponse(BaseModel):
+    messages: List[BaseMessage] = [
+        BaseMessage(text="I see..."),
+        BaseMessage(text="Okay..."),
+        BaseMessage(text="Alright..."),
+    ]
 
 class LLMAgentConfig(AgentConfig, type=AgentType.LLM.value):
     prompt_preamble: str

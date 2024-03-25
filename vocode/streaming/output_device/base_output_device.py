@@ -1,3 +1,5 @@
+import asyncio
+
 from vocode.streaming.models.audio_encoding import AudioEncoding
 
 
@@ -11,9 +13,15 @@ class BaseOutputDevice:
 
     def consume_nonblocking(self, chunk: bytes):
         raise NotImplemented
-    
+
     def maybe_send_mark_nonblocking(self, message):
         pass
 
     def terminate(self):
+        pass
+
+    async def write_chunks(self, audio_id: str):
+        pass
+    
+    def send_audio(self, chunk, audio_id):
         pass

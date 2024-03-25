@@ -1,5 +1,6 @@
 import asyncio
 import os
+import tempfile
 from typing import (
     Any,
     AsyncGenerator,
@@ -15,12 +16,15 @@ from typing import (
 import math
 import io
 import wave
+import secrets
 import aiohttp
 from nltk.tokenize import word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
 from opentelemetry import trace
 from opentelemetry.trace import Span
+from vocode.streaming.constants import AGENT_RECORDING_SUFFIX
 
+from vocode import pubsub
 from vocode.streaming.agent.bot_sentiment_analyser import BotSentiment
 from vocode.streaming.models.agent import FillerAudioConfig
 from vocode.streaming.models.message import BaseMessage
@@ -28,18 +32,52 @@ from vocode.streaming.synthesizer.miniaudio_worker import MiniaudioWorker
 from vocode.streaming.utils import convert_wav, get_chunk_size_per_second
 from vocode.streaming.models.audio_encoding import AudioEncoding
 from vocode.streaming.models.synthesizer import SynthesizerConfig
+from vocode.streaming.pubsub.base_pubsub import Publisher, PubSubTopics
 
 FILLER_PHRASES = [
-    BaseMessage(text="Um..."),
-    BaseMessage(text="Uh..."),
-    BaseMessage(text="Uh-huh..."),
-    BaseMessage(text="Mm-hmm..."),
-    BaseMessage(text="Hmm..."),
-    BaseMessage(text="Okay..."),
-    BaseMessage(text="Right..."),
-    BaseMessage(text="Let me see..."),
+    BaseMessage(text=" - Ok -- ;"),
+    # BaseMessage(text=" -- Got it -- ;"),
+    # BaseMessage(text=" -- I see -- ;"),
+    BaseMessage(text=" -- Right -- ;"),
+    # BaseMessage(text=" -- Let's see -- ;"),
+    BaseMessage(text=" - Ok -- ;"),
+    # BaseMessage(text=" -- Hmm -- ;"),
+    # BaseMessage(text=" -- Got it -- ;"),
+    # BaseMessage(text=" -- I see -- ;"),
+    BaseMessage(text=" -- Right -- ;"),
+    # BaseMessage(text=" -- Let's see -- ;"),
+    BaseMessage(text=" - Ok -- ;"),
+    # BaseMessage(text=" -- Hmm -- ;"),
+    # BaseMessage(text=" -- Got it -- ;"),
+    # BaseMessage(text=" -- I see -- ;"),
+    BaseMessage(text=" -- Right -- ;"),
+    # BaseMessage(text=" -- Let's see -- ;"),
+    BaseMessage(text=" - Ok -- ;"),
+    # BaseMessage(text=" -- Hmm -- ;"),
+    # BaseMessage(text=" -- Got it -- ;"),
+    # BaseMessage(text=" -- I see -- ;"),
+    # BaseMessage(text=" -- Let's see -- ;"),
+    BaseMessage(text=" -- Right -- ;"),
+    # BaseMessage(text=" -- Hmm -- ;"),
 ]
-FILLER_AUDIO_PATH = os.path.join(os.path.dirname(__file__), "filler_audio")
+
+
+def get_filler_audio_path():
+    # Create a temporary directory
+    temp_dir = tempfile.gettempdir()
+
+    # Construct the path for the filler audio
+    filler_audio_path = os.path.join(temp_dir, "filler_audio")
+
+    # You might want to create the directory if it doesn't exist
+    if not os.path.exists(filler_audio_path):
+        os.makedirs(filler_audio_path)
+
+    return filler_audio_path
+
+
+# Usage
+FILLER_AUDIO_PATH = get_filler_audio_path()
 TYPING_NOISE_PATH = "%s/typing-noise.wav" % FILLER_AUDIO_PATH
 
 
@@ -125,7 +163,11 @@ class BaseSynthesizer(Generic[SynthesizerConfigType]):
         self,
         synthesizer_config: SynthesizerConfigType,
         aiohttp_session: Optional[aiohttp.ClientSession] = None,
+        audio_id: Optional[str] = None
     ):
+        self.audio_id = audio_id or (
+            f"transcription_audio_id_{secrets.token_urlsafe(16)}"
+        )
         self.synthesizer_config = synthesizer_config
         if synthesizer_config.audio_encoding == AudioEncoding.MULAW:
             assert (
@@ -139,10 +181,31 @@ class BaseSynthesizer(Generic[SynthesizerConfigType]):
         else:
             self.aiohttp_session = aiohttp.ClientSession()
             self.should_close_session_on_tear_down = True
+        self.publisher: Publisher = Publisher("BaseSynthesizerPublisher")
 
     async def empty_generator(self):
         yield SynthesisResult.ChunkResult(b"", True)
 
+    def set_audio_id(self, audio_id):
+        self.audio_id = audio_id
+
+    def create_silent_chunk(self, duration_sec):
+        pass
+    
+    def send_audio(self, chunk):
+        if self.publisher and self.synthesizer_config.publish_audio:
+            event_id = f"{self.audio_id}_{AGENT_RECORDING_SUFFIX}"
+            topic = PubSubTopics.INPUT_AUDIO_STREAMS
+            _ = asyncio.create_task(
+                self.publisher.publish(
+                    event_id,
+                    chunk,
+                    self.synthesizer_config.audio_encoding,
+                    topic,
+                    pubsub,
+                )
+            )
+            
     def get_synthesizer_config(self) -> SynthesizerConfig:
         return self.synthesizer_config
 

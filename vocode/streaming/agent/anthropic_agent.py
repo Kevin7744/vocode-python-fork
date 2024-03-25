@@ -1,5 +1,5 @@
 from typing import AsyncGenerator, Optional, Tuple
-from langchain import ConversationChain
+from langchain.chains import ConversationChain
 import logging
 
 from typing import Optional, Tuple

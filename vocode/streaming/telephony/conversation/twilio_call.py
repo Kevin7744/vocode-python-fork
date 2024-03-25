@@ -4,6 +4,7 @@ import base64
 from enum import Enum
 import json
 import logging
+
 from typing import Optional
 from vocode import getenv
 from vocode.streaming.agent.factory import AgentFactory
@@ -32,7 +33,6 @@ from vocode.streaming.utils.state_manager import TwilioCallStateManager
 class PhoneCallWebsocketAction(Enum):
     CLOSE_WEBSOCKET = 1
 
-
 class TwilioCall(Call[TwilioOutputDevice]):
     def __init__(
         self,
@@ -52,6 +52,11 @@ class TwilioCall(Call[TwilioOutputDevice]):
         events_manager: Optional[EventsManager] = None,
         logger: Optional[logging.Logger] = None,
     ):
+        self.twilio_config = twilio_config or TwilioConfig(
+            account_sid=getenv("TWILIO_ACCOUNT_SID"),
+            auth_token=getenv("TWILIO_AUTH_TOKEN"),
+        )
+                
         super().__init__(
             from_phone,
             to_phone,
@@ -66,20 +71,18 @@ class TwilioCall(Call[TwilioOutputDevice]):
             transcriber_factory=transcriber_factory,
             agent_factory=agent_factory,
             synthesizer_factory=synthesizer_factory,
+            recordings_dir=self.twilio_config.recordings_dir,
             logger=logger,
         )
         self.base_url = base_url
         self.config_manager = config_manager
-        self.twilio_config = twilio_config or TwilioConfig(
-            account_sid=getenv("TWILIO_ACCOUNT_SID"),
-            auth_token=getenv("TWILIO_AUTH_TOKEN"),
-        )
         self.telephony_client = TwilioClient(
             base_url=base_url, twilio_config=self.twilio_config
         )
+        self.receiver_started = False
         self.twilio_sid = twilio_sid
         self.latest_media_timestamp = 0
-
+        
     def create_state_manager(self) -> TwilioCallStateManager:
         return TwilioCallStateManager(self)
 
@@ -88,7 +91,15 @@ class TwilioCall(Call[TwilioOutputDevice]):
 
         twilio_call_ref = self.telephony_client.twilio_client.calls(self.twilio_sid)
         twilio_call = twilio_call_ref.fetch()
-
+        
+        # @Roy, this is where the recordings are being created to be saved 
+        # to twilio. Ideally we move these to s3 (encrypted eventually)
+        # something like /year/month/date/... like the current s3 buckets.
+        # Ideally we also rename them to use the conversation_id so that 
+        # the db record, the transcript json, and the audio wav all have the same
+        # prefix. That said, I believe they are being saved on twilio with the 
+        # Call SID or call id. I will look into it more tomorrow but if you have an idea 
+        # go for it.
         if self.twilio_config.record:
             recordings_create_params = (
                 self.twilio_config.extra_params.get("recordings_create_params")
@@ -108,6 +119,7 @@ class TwilioCall(Call[TwilioOutputDevice]):
         else:
             await self.wait_for_twilio_start(ws)
             await super().start()
+
             self.events_manager.publish_event(
                 PhoneCallConnectedEvent(
                     conversation_id=self.id,
@@ -116,12 +128,18 @@ class TwilioCall(Call[TwilioOutputDevice]):
                 )
             )
             while self.active:
-                message = await ws.receive_text()
+                if not self.receiver_started:
+                    self.logger.debug("Receiver started")
+                    self.receiver_started = True
+                message  = await ws.receive_text()
+                    
                 response = await self.handle_ws_message(message)
                 if response == PhoneCallWebsocketAction.CLOSE_WEBSOCKET:
                     break
+            self.logger.debug("Receiver inactive")
         await self.config_manager.delete_config(self.id)
         await self.tear_down()
+        self.logger.debug("Terminated TwilioCall")
 
     async def wait_for_twilio_start(self, ws: WebSocket):
         assert isinstance(self.output_device, TwilioOutputDevice)
@@ -145,7 +163,13 @@ class TwilioCall(Call[TwilioOutputDevice]):
         if data["event"] == "media":
             media = data["media"]
             chunk = base64.b64decode(media["payload"])
+            # the media timestamp is in millisecond, so the below is just adding
+            # a buffer of 20ms during the check.
             if self.latest_media_timestamp + 20 < int(media["timestamp"]):
+                # Ghinwa note: # bytes is sampling rate * time_in_sec. Since the 
+                # time is already in millisecond and input sampling rate then 
+                # we get bytes_to_fill = time_in_sec * sampling rate = time_in_ms/1000 * 8000
+                # = 8 * time_in_ms.    
                 bytes_to_fill = 8 * (
                     int(media["timestamp"]) - (self.latest_media_timestamp + 20)
                 )

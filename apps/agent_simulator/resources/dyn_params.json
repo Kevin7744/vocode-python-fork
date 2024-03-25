@@ -1,0 +1,128 @@
+{
+    "available_item_jan_29": [
+        {
+            "ItemName": "Sprouts Organic Tofu",
+            "ItemDescription": "Extra Firm",
+            "ItemSize": "14 ounces"
+        },
+        {
+            "ItemName": "Vital Farms Sea Salted Butter",
+            "ItemDescription": "Salted",
+            "ItemSize": "8 ounces"
+        },
+        {
+            "ItemName": "Sprouts Organic Green Peas",
+            "ItemDescription": "Organic",
+            "ItemSize": "16 ounces"
+        },
+        {
+            "ItemName": "Organic Lemon",
+            "ItemDescription": "",
+            "ItemSize": ""
+        },
+        {
+            "ItemName": "Sprouts 2-Ply Paper Towel Roll",
+            "ItemDescription": "135 Sheets",
+            "ItemSize": ""
+        },
+        {
+            "ItemName": "Mary's Chicken Organic Party Wings",
+            "ItemDescription": "Organic",
+            "ItemSize": "2 pounds"
+        },
+        {
+            "ItemName": "Windset Farms Cameo Red Cherry Tomatoes",
+            "ItemDescription": "",
+            "ItemSize": "1 pint"
+        },
+        {
+            "ItemName": "Dynasty Top Quality Jasmine Rice",
+            "ItemDescription": "",
+            "ItemSize": "2 pounds"
+        },
+        {
+            "ItemName": "Sprouts Ready To Eat Edamame",
+            "ItemDescription": "Ready To Eat",
+            "ItemSize": "14 ounces"
+        },
+        {
+            "ItemName": "Sprouts 85% Lean Turkey Ground Fresh Organic",
+            "ItemDescription": "85% lean, Organic, Free Range, Antibiotic Free",
+            "ItemSize": "16 ounces"
+        }
+
+    ],
+    "available_item_feb_1": [
+        {
+            "ItemName": "Sprouts Organic Tofu",
+            "ItemDescription": "Extra Firm",
+            "ItemSize": "14 ounces"
+        },
+        {
+            "ItemName": "Vital Farms Sea Salted Butter",
+            "ItemDescription": "Salted",
+            "ItemSize": "8 ounces"
+        },
+        {
+            "ItemName": "Sprouts Organic Green Peas",
+            "ItemDescription": "Organic",
+            "ItemSize": "16 ounces"
+        },
+        {
+            "ItemName": "Organic Lemon",
+            "ItemDescription": "",
+            "ItemSize": ""
+        },
+        {
+            "ItemName": "Sprouts 2-Ply Paper Towel Roll",
+            "ItemDescription": "135 Sheets",
+            "ItemSize": ""
+        },
+        {
+            "ItemName": "Mary's Chicken Organic Party Wings",
+            "ItemDescription": "Organic",
+            "ItemSize": "2 pounds"
+        },
+        {
+            "ItemName": "Windset Farms Cameo Red Cherry Tomatoes",
+            "ItemDescription": "",
+            "ItemSize": "1 pint"
+        },
+        {
+            "ItemName": "Dynasty Top Quality Jasmine Rice",
+            "ItemDescription": "",
+            "ItemSize": "2 pounds"
+        },
+        {
+            "ItemName": "Sprouts Ready To Eat Edamame",
+            "ItemDescription": "Ready To Eat",
+            "ItemSize": "14 ounces"
+        },
+        {
+            "ItemName": "Sprouts 85% Lean Turkey Ground Fresh Organic",
+            "ItemDescription": "85% lean, Organic, Free Range, Antibiotic Free",
+            "ItemSize": "16 ounces"
+        }
+
+    ],
+    "appointment_booking_feb_1": [
+        {
+            "ClientName": "Sammy",
+            "TodayDate": "February 1st, 2024",
+            "AgentAvailability": "{'availability': [{'date': '2024-02-01', 'day': 'Thursday', 'time_slots': []}, {'date': '2024-02-02', 'day': 'Friday', 'time_slots': ['16:00-17:00']}, {'date': '2024-02-05', 'day': 'Monday', 'time_slots': ['16:00-17:00']}, {'date': '2024-02-06', 'day': 'Tuesday', 'time_slots': []}, {'date': '2024-02-07', 'day': 'Wednesday', 'time_slots': []}, {'date': '2024-02-08', 'day': 'Thursday', 'time_slots': []}, {'date': '2024-02-09', 'day': 'Friday', 'time_slots': []}, {'date': '2024-02-12', 'day': 'Monday', 'time_slots': []}, {'date': '2024-02-13', 'day': 'Tuesday', 'time_slots': []}, {'date': '2024-02-14', 'day': 'Wednesday', 'time_slots': []}]}",
+            "unavailability_odds": "50"
+        },
+        {
+            "ClientName": "Sammy",
+            "TodayDate": "February 01, 2024",
+            "AgentAvailability": "[{'date': '2024-02-01', 'day': 'Thursday', 'time_slots': []}, {'date': '2024-02-02', 'day': 'Friday', 'time_slots': ['16:00-17:00']}, {'date': '2024-02-05', 'day': 'Monday', 'time_slots': ['15:00-16:00']}, {'date': '2024-02-06', 'day': 'Tuesday', 'time_slots': ['10:00-11:00', '15:00-16:00']}, {'date': '2024-02-07', 'day': 'Wednesday', 'time_slots': ['16:00-17:00']}, {'date': '2024-02-08', 'day': 'Thursday', 'time_slots': ['13:00-14:00']}, {'date': '2024-02-09', 'day': 'Friday', 'time_slots': []}, {'date': '2024-02-12', 'day': 'Monday', 'time_slots': ['09:00-10:00']}, {'date': '2024-02-13', 'day': 'Tuesday', 'time_slots': ['15:00-16:00']}, {'date': '2024-02-14', 'day': 'Wednesday', 'time_slots': ['09:00-10:00', '11:00-12:00']}]}",
+            "unavailability_odds": "10"
+        },
+        {
+            "ClientName": "Sammy",
+            "TodayDate": "February 01, 2024",
+            "AgentAvailability": "{'availability': [{'date': '2024-02-01', 'day': 'Thursday', 'time_slots': ['09:00-10:00', '10:00-11:00', '11:00-12:00', '14:00-15:00', '16:00-17:00']}, {'date': '2024-02-02', 'day': 'Friday', 'time_slots': ['09:00-10:00', '13:00-14:00', '14:00-15:00', '15:00-16:00']}, {'date': '2024-02-05', 'day': 'Monday', 'time_slots': ['10:00-11:00', '11:00-12:00', '13:00-14:00', '16:00-17:00']}, {'date': '2024-02-06', 'day': 'Tuesday', 'time_slots': ['09:00-10:00', '13:00-14:00', '14:00-15:00']}, {'date': '2024-02-07', 'day': 'Wednesday', 'time_slots': ['09:00-10:00', '10:00-11:00', '15:00-16:00']}, {'date': '2024-02-08', 'day': 'Thursday', 'time_slots': ['09:00-10:00', '10:00-11:00', '16:00-17:00']}, {'date': '2024-02-09', 'day': 'Friday', 'time_slots': ['09:00-10:00', '10:00-11:00', '13:00-14:00', '16:00-17:00']}, {'date': '2024-02-12', 'day': 'Monday', 'time_slots': ['09:00-10:00', '11:00-12:00', '16:00-17:00']}, {'date': '2024-02-13', 'day': 'Tuesday', 'time_slots': ['09:00-10:00', '15:00-16:00', '16:00-17:00']}, {'date': '2024-02-14', 'day': 'Wednesday', 'time_slots': ['11:00-12:00', '16:00-17:00']}]}",
+            "unavailability_odds": "1"
+        }
+    ]
+}

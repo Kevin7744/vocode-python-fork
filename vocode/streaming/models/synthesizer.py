@@ -42,6 +42,7 @@ class SynthesizerConfig(TypedModel, type=SynthesizerType.BASE.value):
     sampling_rate: int
     audio_encoding: AudioEncoding
     should_encode_as_wav: bool = False
+    publish_audio: bool = False
     sentiment_config: Optional[SentimentConfig] = None
 
     class Config:
@@ -111,6 +112,8 @@ class ElevenLabsSynthesizerConfig(
     stability: Optional[float]
     similarity_boost: Optional[float]
     model_id: Optional[str]
+    style: Optional[float]
+    use_speaker_boost: Optional[bool]
 
     @validator("voice_id")
     def set_name(cls, voice_id):
@@ -173,6 +176,7 @@ class PlayHtSynthesizerConfig(SynthesizerConfig, type=SynthesizerType.PLAY_HT.va
     temperature: Optional[int] = None
     voice_id: str = PLAYHT_DEFAULT_VOICE_ID
     experimental_streaming: bool = False
+    voice_engine_id: Optional[str] = None
 
 
 class CoquiTTSSynthesizerConfig(

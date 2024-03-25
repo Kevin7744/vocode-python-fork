@@ -41,6 +41,9 @@ class TwilioClient(BaseTelephonyClient):
             send_digits=digits,
             record=record,
             **self.get_telephony_config().extra_params,
+            status_callback=f"https://{self.base_url}/twilio/status",
+            status_callback_method="POST",
+            status_callback_event=["initiated", "ringing", "answered", "completed"]
         )
         return twilio_call.sid
 

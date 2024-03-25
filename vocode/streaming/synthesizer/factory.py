@@ -33,6 +33,7 @@ class SynthesizerFactory:
     def create_synthesizer(
         self,
         synthesizer_config: SynthesizerConfig,
+        audio_id: Optional[str] = None,
         logger: Optional[logging.Logger] = None,
         aiohttp_session: Optional[aiohttp.ClientSession] = None,
     ):
@@ -46,7 +47,10 @@ class SynthesizerFactory:
             )
         elif isinstance(synthesizer_config, ElevenLabsSynthesizerConfig):
             return ElevenLabsSynthesizer(
-                synthesizer_config, logger=logger, aiohttp_session=aiohttp_session
+                synthesizer_config, 
+                audio_id=audio_id, 
+                logger=logger, 
+                aiohttp_session=aiohttp_session
             )
         elif isinstance(synthesizer_config, PlayHtSynthesizerConfig):
             return PlayHtSynthesizer(

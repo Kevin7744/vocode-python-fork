@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <title>Env Variables Check</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 20px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      margin-bottom: 10px;
+    }
+    input[type="checkbox"] {
+      cursor: pointer;
+    }
+    input[type="checkbox"]:checked + label {
+      color: green;
+    }
+    input[type="checkbox"]:not(:checked) + label {
+      color: red;
+    }
+    .call-form {
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      display: inline-block;
+      padding: 20px;
+      width: 80%;
+    }
+    input {
+      background-color: #ffffff;
+      border: 1px solid #ccc;
+      color: #000000;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+      padding: 6px 12px;
+    }
+    input:hover {
+      border-color: #000000;
+    }
+    .message {
+      margin-top: 10px;
+      padding: 6px 12px;
+    }
+    .error {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+    .success {
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+        color: #155724;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    .submit-button {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+    .submit-button:hover {
+        background-color: #0056b3;
+    }
+
+    .dynamic-params {
+        margin-top: 20px;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+    }
+    .campaign-selection{
+      display:flex;
+      flex-direction: column;
+      justify-content: start;
+      align-items: start;
+    }
+    .campaign-config-selected {
+        width: 70%;
+        display: flex;
+        flex-wrap: row;
+        justify-content: space-between; 
+        margin-top: 20px; 
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+    }
+    
+    .campaign-config-item {
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        padding: 10px;
+        border-radius: 4px;
+        background-color: #f5f5f5;
+    }
+    /* Style for campaign-config-details */
+    .campaign-config-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    /* Style for config-value-container */
+    .config-value-container {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        min-width: 200px;
+    }
+
+    /* Style for close-button */
+    .close-button {
+        background-color: #007bff;
+        color: white;
+        padding: 5px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+
+    .close-button:hover {
+        background-color: #0056b3;
+    }
+
+    /* Style for config-value */
+    .config-value {
+        margin-top: 10px;
+    } 
+    select {
+      display: block;
+      width: 100%; /* Full width */
+      padding: 10px; /* Some padding */
+      border: 1px solid #ccc; /* Gray border */
+      border-radius: 4px; /* Rounded borders */
+      background-color: white; /* White background color */
+      font-size: 16px; /* Increase font size */
+      cursor: pointer; /* Change cursor on hover */
+      margin-top: 4px;
+    }
+
+    select:hover {
+        border-color: #888; /* Darker border on hover */
+    }
+
+    /* Style for the select arrow */
+    select:after {
+        content: '\25BC'; /* Down arrow */
+        font-size: 12px;
+        position: absolute;
+        right: 10px;
+        top: calc(50% - 6px); /* Center vertically */
+        pointer-events: none; /* No pointer events on arrow */
+    }
+    .form-container {
+          display: flex;
+          justify-content: space-between; /* Adjusts the space between the two sections */
+          align-items: flex-start; /* Aligns items to the start of the flex container */
+          gap: 50px;
+      }
+
+      .parameters, .campaign-business {
+          flex: 1; /* Each section takes equal width */
+          margin-right: 10px; /* Optional, for some spacing between the sections */
+      }
+
+      /* To ensure the last section does not have a margin on the right */
+      .campaign-business {
+          margin-right: 0;
+      }
+      input[type="submit"] {
+          background-color: #007bff;
+          border: 1px solid #007bff;
+          color: #fff;
+          cursor: pointer;
+          font-size: 14px;
+          margin-top: 10px;
+          padding: 6px 12px;
+          width: 100%;
+      }
+      .info {
+          display: none;
+          background-color: #f9f9f9;
+          border: 1px solid #ccc; 
+          padding: 10px; 
+          border-radius: 5px; 
+          margin-top: 5px; 
+      }
+
+      /* Display the info div when hovering over the form-group */
+      .form-group:hover .info {
+          display: block;
+      }
+
+      /* Optional: Add a transition for a smooth appearance */
+      .info {
+          transition: all 0.3s ease-in-out;
+      }
+  </style>
+</head>
+<body>
+    <h2>Twilio</h2>
+    <p>Paste the following URL into your Twilio config:<b>https://{{ env_vars.BASE_URL}}/inbound_call</b></p>
+    <h2>Env Variables</h2>
+    <p>Please set the following <a href="https://docs.replit.com/programming-ide/workspace-features/secrets" target="_blank">env variables:</a></p>
+    <ul>
+        {% for key, value in env_vars.items() %}
+          {% if key != "BASE_URL" %}
+      <li>
+        <input type="checkbox" id="{{ key }}" {% if value %}checked{% endif %} disabled>
+          <label for="{{ key }}">{{ key }}</label>
+      </li>
+          {% endif %}
+        {% endfor %}
+    </ul>
+  
+
+    <h2>Outbound Call</h2>
+    <form id="outboundCallForm", class="call-form">
+      <div class="form-container">
+      <section class="parameters">
+        <h3>LLM (Agent) Parameters</h3>
+        <!-- Model Name Selection -->
+          <div class="form-group">
+            <label for="modelName">Model Name:</label>
+            <select id="modelName" name="modelName" required>
+                <option value="gpt-3.5-turbo">GPT-3.5-Turbo</option>
+                <option value="gpt-4">GPT-4</option>
+            </select>
+          </div>
+          <!-- Agent Cutoff -->
+          <div class="form-group">
+            <label for="allowAgentToBeCutOff">Allow Agent to Be Cut Off:</label>
+            <select id="allowAgentToBeCutOff" name="allowAgentToBeCutOff" required>
+                <option value="true">Yes</option>
+                <option value="false">No</option>
+            </select>
+          </div>
+          <!-- Initial Message Interruptible -->
+          <div class="form-group">
+            <label for="initialMessageInterruptible">Initial Agent Message is Interruptible:</label>
+            <select id="initialMessageInterruptible" name="initialMessageInterruptible" required>
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+            </select>
+          </div>
+
+          <!-- Allowed Idle Time Seconds -->
+          <div class="form-group">
+            <label for="allowedIdleTimeSeconds">Termination Idle Time (seconds):</label>
+            <input type="number" id="allowedIdleTimeSeconds" name="allowedIdleTimeSeconds" required min="0" value="8">
+            <div class="info">
+              <p>The Agent will wait this given time (in seconds) before terminating the call.</p>
+            </div>
+          </div>
+
+          <!-- Check-in Idle Time Seconds -->
+          <div class="form-group">
+            <label for="checkInIdleTimeSeconds">Agent Check-in Idle Time (seconds):</label>
+            <input type="number" id="checkInIdleTimeSeconds" name="checkInIdleTimeSeconds" required min="0" value="5">
+            <div class="info">
+              <p>The Agent will wait this given time (in seconds) before checking in again on the user; such as "Hello are you still there?".</p>
+            </div>
+          </div>
+
+          <!-- Timeout Initial Message -->
+          <div class="form-group">
+            <label for="timeoutInitialMessage">Timeout on Initial Message (seconds):</label>
+            <input type="number" id="timeoutInitialMessage" name="timeoutInitialMessage" required min="0" value="0">
+            <div class="info">
+              <p>The Agent will wait this given time (in seconds) before speaking first to the user.</p>
+            </div>
+          </div>
+        </section>
+        <section class="campaign-business">
+          <h3>Campaign</h3>
+          <div class="form-group">
+              <label for="campaignSelect">Campaign:</label>
+              <select id="campaignSelect" name="campaign" required onchange="updateDynamicParams()">
+                  {% for campaign_name in campaign_configs.keys() %}
+                      <option value="{{ campaign_name }}">{{ campaign_name }}</option>
+                  {% endfor %}
+              </select>
+          </div>
+      
+          <!-- Placeholder for dynamic parameters for each campaign -->
+          <div id="dynamicParameters">
+              {% for campaign_name, config in campaign_configs.items() %}
+                  <div id="dynParams_{{ campaign_name }}" class="dynamic-params" style="display:none;">
+                      {% for param, details in config['campaignParams']['DynParams'].items() %}
+                          <div class="form-group">
+                              <label for="{{ param }}">{{ param }}:</label>
+                              <input type="text" id="{{ param }}" name="{{ param }}" value="{{ details['Default'] }}">
+                          </div>
+                      {% endfor %}
+                  </div>
+              {% endfor %}
+          </div>
+          <h3>Business</h3>
+          <div id="business">
+            <div class="form-group">
+              <label for="businessName">Business Name:</label>
+              <input type="text" id="businessName" name="businessName" required>
+            </div>
+            <div class="form-group">
+              <label for="businessNumber">Phone Number:</label>
+              <input type="text" id="businessNumber" name="businessNumber" required>
+            </div>
+          </div>
+
+        <br>
+        <input type="submit" value="Start Call">
+      </section>
+    </div>
+    </form>
+
+    <script>
+        function getDropdownOptions(param) {
+            const options = {
+                'OpenClose': ['open', 'close'],
+                'Day': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                'MenuItem': ['Pizza', 'Burger', 'Escalope', 'Soup']
+            };
+            return options[param] || []; // Return the options or an empty array if not found
+        }
+
+        function updateDynamicParams() {
+              const selectedCampaign = document.getElementById("campaignSelect").value;
+              const selectedDiv = document.getElementById("dynParams_" + selectedCampaign);
+
+              // Hide all dynamic parameter divs
+              document.querySelectorAll("div[id^='dynParams_']").forEach(div => {
+                  div.style.display = 'none';
+              });
+
+              // Show the div associated with the selected campaign
+              if (selectedDiv) {
+                  selectedDiv.style.display = 'block';
+
+                  const inputs = selectedDiv.querySelectorAll("input");
+                  inputs.forEach(input => {
+                      const dropdownOptions = getDropdownOptions(input.name);
+                      if (dropdownOptions.length > 0) {
+                          // Create and populate a select element
+                          const select = document.createElement("select");
+                          select.id = input.id;
+                          select.name = input.name;
+
+                          // Add an empty default option
+                          const defaultOption = document.createElement("option");
+                          defaultOption.textContent = "Select an option";
+                          defaultOption.value = "";
+                          select.appendChild(defaultOption);
+
+                          // Add predefined options
+                          dropdownOptions.forEach(option => {
+                              const optionElement = document.createElement("option");
+                              optionElement.value = option;
+                              optionElement.textContent = option;
+                              if (option === input.value) {
+                                  optionElement.selected = true;
+                              }
+                              select.appendChild(optionElement);
+                          });
+
+                          // Replace the input with the select element
+                          input.parentNode.replaceChild(select, input);
+                      }
+                  });
+              }
+          }
+        updateDynamicParams()
+
+        const outboundCallForm = document.getElementById("outboundCallForm");
+
+        outboundCallForm.addEventListener("submit", async (event) => {
+            console.log("Listening to outboundCallForm")
+          event.preventDefault();
+          const selectedCampaign = document.getElementById("campaignSelect").value;
+          console.log(selectedCampaign)
+          const dynamicParamsDiv = document.getElementById("dynParams_" + selectedCampaign);
+          console.log(dynamicParamsDiv)
+          // Collect dynamic parameters
+          let dynamicParams = {};
+          if (dynamicParamsDiv) {
+                const inputs = dynamicParamsDiv.querySelectorAll("input, select");
+                inputs.forEach(input => {
+                    dynamicParams[input.name] = input.value;
+                });
+            }
+          console.log(dynamicParams)
+          // Collect business information
+          const businessName = document.getElementById("businessName").value;
+          const businessNumber = document.getElementById("businessNumber").value;
+
+          // Collect other Params
+          const allowAgentToBeCutOff = document.getElementById("allowAgentToBeCutOff").value === "true";
+          const initialMessageInterruptible = document.getElementById("initialMessageInterruptible").value === "true";
+          const allowedIdleTimeSeconds = parseInt(document.getElementById("allowedIdleTimeSeconds").value);
+          const checkInIdleTimeSeconds = parseInt(document.getElementById("checkInIdleTimeSeconds").value);
+          const timeoutInitialMessage = parseInt(document.getElementById("timeoutInitialMessage").value);
+          const modelName = document.getElementById("modelName").value;
+          let formData = {
+                campaign_name: selectedCampaign,
+                dynamic_params: dynamicParams,
+                business_name: businessName,
+                business_number: businessNumber,
+                model_name: modelName,
+                allow_agent_to_be_cut_off: allowAgentToBeCutOff,
+                initial_message_interruptible: initialMessageInterruptible,
+                allowed_idle_time_seconds: allowedIdleTimeSeconds,
+                check_in_idle_time_seconds: checkInIdleTimeSeconds,
+                timeout_initial_message: timeoutInitialMessage
+            };
+          console.log(formData)
+
+        //   Call the outbound endpoint
+          const outboundCallURL = "http://{{env_vars.BASE_URL}}/start_outbound_call";              
+          console.log("outboundCallURL *******")
+          console.log(outboundCallURL)
+          const response = await fetch(outboundCallURL, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(formData)
+                        });
+
+            const result = await response.json();
+            console.log(result);
+            // if (!result.status || result.status !== "success") {
+            //     showMessage("error", result.detail);
+            // } else {
+            //     showMessage("success", "Call started successfully!");
+            // }
+        });
+      </script>
+</body>
+</html>

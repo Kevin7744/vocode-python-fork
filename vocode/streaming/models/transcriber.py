@@ -55,6 +55,7 @@ class TranscriberConfig(TypedModel, type=TranscriberType.BASE.value):
     downsampling: Optional[int] = None
     min_interrupt_confidence: Optional[float] = None
     mute_during_speech: bool = False
+    publish_audio: bool = False
 
     @validator("min_interrupt_confidence")
     def min_interrupt_confidence_must_be_between_0_and_1(cls, v):
@@ -109,6 +110,7 @@ class DeepgramTranscriberConfig(TranscriberConfig, type=TranscriberType.DEEPGRAM
     tier: Optional[str] = None
     version: Optional[str] = None
     keywords: Optional[list] = None
+    vad_events: Optional[str] = "false"
 
 
 class GladiaTranscriberConfig(TranscriberConfig, type=TranscriberType.GLADIA.value):
@@ -130,7 +132,6 @@ class AssemblyAITranscriberConfig(
 ):
     buffer_size_seconds: float = 0.1
     word_boost: Optional[List[str]] = None
-    end_utterance_silence_threshold_milliseconds: Optional[int] = None
 
 
 class WhisperCPPTranscriberConfig(
