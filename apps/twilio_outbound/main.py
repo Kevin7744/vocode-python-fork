@@ -55,9 +55,13 @@ from vocode.streaming.models.transcriber import (
 )
 # ===================================================================================
 
+
+# ========================Environment Variables and Logging =========================
+
 AWS_PROFILE_NAME = os.getenv("AWS_PROFILE_NAME")
 CLOUDWATCH_LOGS  = os.getenv("CLOUDWATCH_LOGS")
 SERVER_VERSION   = os.getenv("SERVER_VERSION")
+
 # Logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -82,6 +86,11 @@ tw_logger.setLevel(logging.INFO)
 sc_logger.setLevel(logging.INFO)
 lm_logger.setLevel(logging.INFO)
 
+
+# ====================================================================================
+
+
+# ========================Telephony Server Setup=====================================
 
 def get_call_attributes(event):
   """
@@ -232,8 +241,10 @@ SYNTH_CONFIG = ElevenLabsSynthesizerConfig.from_telephone_output_device(
   optimize_streaming_latency=2
   )
 
-def prepare_agent_config(business_campaign: BusinessCampaign, business_name: str,
-                         model_name: str, allow_agent_to_be_cut_off: bool, 
+def prepare_agent_config(business_campaign: BusinessCampaign, 
+                         business_name: str,
+                         model_name: str, 
+                         allow_agent_to_be_cut_off: bool, 
                          initial_message_interruptible: bool, 
                          allowed_idle_time_seconds: int, 
                          check_in_idle_time_seconds: int, 
