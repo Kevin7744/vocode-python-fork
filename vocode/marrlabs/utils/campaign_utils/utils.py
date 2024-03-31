@@ -4,6 +4,7 @@ from vocode.marrlabs.utils.aws_utils.dynamo_s3 import DynamoDBTable
 def parse_dynamo_response(item):
   """
   Util function to parse a response if it came from dynamoDB
+  Recursively converts various data types from DynamoDB format to Python-friendly structures (strings, numbers, lists, booleans, dictionaries).
   """
   if isinstance(item, dict):
       if 'S' in item:
