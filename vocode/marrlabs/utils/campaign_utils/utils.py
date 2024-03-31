@@ -25,6 +25,15 @@ def parse_dynamo_response(item):
       return item
   
 def get_campaign_configs(table_name, AWS_PROFILE_NAME):
+  """
+  - Retrieves campaign configuration data from a DynamoDB table.
+  - Takes the table name and optional AWS profile name as input.
+  - Creates a DynamoDBTable object using the provided information.
+  - Scans the table and checks for returned items.
+  - Parses each retrieved item using parse_dynamo_response.
+  - Organizes items into a dictionary using the campaignType attribute (if present) as the key.
+  - Returns a dictionary containing campaign configurations or an empty dictionary if no items are found.
+  """
     table = DynamoDBTable(table_name, aws_profile_name=AWS_PROFILE_NAME)
 
     response = table.scan_table()
