@@ -6,6 +6,20 @@ BUSINESS_TYPE_HOLDER = "<businesstype>"
 CAMPAIGN_TYPE_HOLDER = "<campaigntype>"
 
 class GenericCampaign:
+    """
+    GenericCampaign:
+        This class serves as a base for more specific campaign types.
+
+        Properties:
+            campaign_type_id: Unique identifier for campaign type.
+            campaign_type: The type of campaign (e.g "Sales call", "Survey").
+            campaign parameters: A dict containing various campain paramaters.
+
+        also abtract methods:
+            prompt: Needs to be implemented to return opening prompt for the call
+            campaign_name: Needs to be implemented by subclasses to return the full campaign name
+            
+    """"
     def __init__(self, campaign_type_id, campaign_type, 
                        campaign_params):
         self.campaign_type_id = campaign_type_id
@@ -30,6 +44,30 @@ class GenericCampaign:
         pass
 
 class BusinessCampaign(GenericCampaign):
+    """
+    BusinessCampaign:
+        Inherits from GenericCampaign
+        adds functionality to specific to campaings targettting businesses.
+
+        additional property:
+            business_type: The type of business the campaign is targettting ("Restaurant", "Retail")
+
+        abstract methods:
+            prompt: retrieves the opening prompt from campaign parameters, potentially selecting randomly if multiple options are provided. Replaces the placeholders with actual business name.
+            llm_prompt: retrieves the llm prompt from campaign parameters, replacing placeholders with the business name
+            campaing_name: retrieves the campaign name template from campaign parameters, 
+                           It replaces placeholders like <businessname>, <businesstype>, and <campaigntype> with actual values. 
+                           Additionally, it calculates a unique campaign ID based on the generated campaign name using SHA-256 hashing.
+
+        helper methods:
+            _get_prompt(): Handles retrieving the opening prompt, considering the possibility of multiple options.
+            dyn_params: A property to access and set dynamic parameters from the campaign configuration. It ensures that dynamic parameters are defined as a dictionary.
+            _replace_dyn_params(): Replaces placeholders in text (like prompts) with values from dynamic parameters. It can perform a case-insensitive replacement.
+            first_prompt_for_biz(): Generates the opening prompt specifically for a business by replacing the <businessname> placeholder.
+            llm_prompt_for_biz(): Generates the LLM prompt for a business by replacing the <businessname> placeholder.
+            llm_prompt_for_sales(): Generates the LLM prompt specifically for a sales call, replacing placeholders for business name and potentially agent availability.
+            
+    """
     def __init__(self, campaign_type_id, campaign_type, 
                        campaign_params, business_type):
         super().__init__(campaign_type_id, 
