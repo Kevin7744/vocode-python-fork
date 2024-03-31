@@ -16,12 +16,12 @@ class DynamoDBTable:
     TODO: make these methods async to reduce conversation latency.
 
     Example Usage:
-    dynamodb_table = DynamoDBTable('YourTableName')
-    new_item = {'id': '1', 'name': 'John Doe', 'age': 30}
-    dynamodb_table.create_item(new_item)
-    update_expression = 'SET age = :val1'
-    expression_attribute_values = {':val1': 31}
-    dynamodb_table.update_item({'id': '1'}, update_expression, expression_attribute_values)
+        dynamodb_table = DynamoDBTable('YourTableName')
+        new_item = {'id': '1', 'name': 'John Doe', 'age': 30}
+        dynamodb_table.create_item(new_item)
+        update_expression = 'SET age = :val1'
+        expression_attribute_values = {':val1': 31}
+        dynamodb_table.update_item({'id': '1'}, update_expression, expression_attribute_values)
     """
     def __init__(self, table_name, 
                  region_name='us-west-2', 
