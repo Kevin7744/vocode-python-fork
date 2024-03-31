@@ -3,6 +3,7 @@ import datetime
 import random
 import json
 
+
 def generate_available_schedule(available_slots, unavailability_odds):
     """ Randomly select available time slots from a 
     list of slots. """
@@ -37,12 +38,13 @@ def generate_weekday_availability(start_date, unavailability_odds, weeks=2):
 
 
 def run_argparse():
-    # Set up argument parser
-    parser = argparse.ArgumentParser(description="""Generate 
-                                     a calendar with random available 
-                                     time slots for weekdays for the next 
-                                     two weeks.""")
-    
+    # Sets up a command-line argument parser with options for start date and unavailability odds.
+    # Parses the arguments and returns them.
+    parser = argparse.ArgumentParser(
+        description="""
+        Generate a calendar with random available time slots for weekdays for the next two weeks.
+        """
+    )
     parser.add_argument("--start-date", help="The start date in YYYY-MM-DD format", required=True)
     parser.add_argument("--unavailability-odds", type=int, 
                         help="Odds-to-one for unavailability", default=1)
